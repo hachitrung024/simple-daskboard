@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Traffic Light Controller</title>
+   <style>
+       body {
+           font-family: Arial, sans-serif;
+           background-color: #505c5d;
+           margin: 0;
+           padding: 0;
+           display: flex;
+           flex-direction: column;
+           align-items: center;
+       }
+
+       header {
+           width: 100%;
+           background: #4b99f3;
+           color: white;
+           padding: 10px 0;
+           text-align: center;
+       }
+
+       .dashboard {
+           display: flex;
+           flex-wrap: wrap;
+           justify-content: center;
+           width: 95%;
+           max-width: 1200px;
+           margin: 20px 0;
+           gap: 20px;
+       }
+
+       .charts {
+           flex: 1 1 calc(50% - 20px);
+           display: flex;
+           flex-direction: column;
+           gap: 20px;
+           min-width: 300px;
+       }
+
+       .chart-container {
+            background: lightcyan;
+            border-radius: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+            height: 250px;  
+            display: flex;
+            flex-direction: column;
+            justify-content:center;
+            align-items: stretch;
+        }
+        .chart-header {
+            flex: 0 0 auto;
+            text-align: center;
+            background-color: inherit;
+            font-size: 2vw;
+            font-weight: bold;
+        }
+        .chart-container h1 {
+            margin-bottom: 1px;
+            color: white;
+        }
+        .button-container {
+            display: flex;
+            border: 10px #000000;
+            gap: 30px; /* Khoảng cách giữa các nút */
+            padding: 20px;
+            justify-content: center;
+        }
+
+        .control-button {
+            width: auto;
+            height: auto;
+            font-size: 30px;
+            background-color: #007bff;
+            color: white;
+            border-radius: 7px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+
+       .gauges {
+           flex: 1 1 calc(50% - 20px);
+           display: grid;
+           grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+           gap: 20px;
+           min-width: 300px;
+       }
+
+       .gauge-container {
+           text-align: center;
+           background: lightcyan;
+           border-radius: 8px;
+           padding: 20px;
+           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+           height: 250px;
+           display: flex;
+           flex-direction: column;
+           justify-content: center;
+           display: flex;
+            align-items: center;
+            margin: 0;
+       }
+       .gauge-value {
+           font-size: 1.5rem;
+           font-weight: bold;
+           margin-top: 10px;
+       }
+       .gauge-value.clickable {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .gauge-value.clickable:hover {
+            color: rgb(209, 26, 26);
+        }
+
+        .gauge-value.clickable:active {
+            transform: scale(0.75);
+        }
+        .color-display {
+            width: 100px;
+            height: 100px;
+            margin: 20px auto;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background-color: #000;
+        }
+
+   </style>
+   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+   <div class="dashboard">
+       <!-- Charts Section -->
+       <div class="charts">
+            <div class="chart-container">
+                <canvas id="tempChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="humidChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Gauges Section -->
+        <div class="gauges">
+           <div class="gauge-container">
+               <h4>Current Temperature</h4>
+               <canvas id="gaugeTemp"></canvas>
+               <div class="gauge-value" id="tempValue">0°C</div>
+           </div>
+
+           
+           <div class="gauge-container">
+               <h4>Chart Update Cycle</h4>
+               <canvas id="gaugeChartCycle"></canvas>
+               <div class="gauge-value clickable" id="chartCycle" onclick="toggleChartFrequency()">0s</div>
+            </div>
+            
+            <div class="gauge-container">
+                <h4>Gauge Update Cycle</h4>
+                <canvas id="gaugeGaugeCycle"></canvas>
+                <div class="gauge-value clickable" id="gaugeCycle" onclick="toggleGaugeFrequency()">0s</div>
+            </div>
+
+            <div class="gauge-container">
+                <h4>Current Humidity</h4>
+                <canvas id="gaugeHumidity"></canvas>
+                <div class="gauge-value" id="humidityValue">0%</div>
+            </div>
+           
+           <div class="gauge-container">
+               <!-- <h4>RGB1</h4> -->
+               <!-- <input type="color" id="colorPicker" value="#000000">
+                <div class="color-display" id="colorDisplay"></div> -->
+               <div class="gauge-value" id="luminosityValue"></div>
+           </div>
+           <div class="gauge-container">
+            <!-- <h4>RGB2</h4> -->
+            <!-- <input type="color" id="colorPicker" value="#000000"> -->
+             <!-- <div class="color-display" id="colorDisplay"></div> -->
+            <div class="gauge-value" id="luminosityValue"></div>
+        </div>
+       </div>
+       
+       <!-- <div class="button-container">
+        <button class="control-button" id="button-MODE" onclick="handleButtonClick('MODE')">MODE</button>
+        <button class="control-button" id="button-SET" onclick="handleButtonClick('SET')">SET</button>
+        <button class="control-button" id="button-OK" onclick="handleButtonClick('OK')">OK</button>
+        <button class="control-button" id="button-RESET" onclick="handleButtonClick('RESET')">RESET</button>
+      </div> -->
+   </div>
+
+   <script>
+    // Temperature Chart
+    const tempChartCtx = document.getElementById('tempChart').getContext('2d');
+       const tempChart = new Chart(tempChartCtx, {
+           type: 'line',
+           data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Temperature',
+                        data: [],
+                        borderColor: 'red',
+                        tension: 0.3,
+                        fill: false
+                    }
+                ]
+           },
+           options: {
+               responsive: true,
+               animation:false,
+               plugins: {
+                    legend: {
+                        labels: {
+                            usePointStyle: true, 
+                            color: 'red',
+                            pointStyle: 'none',
+                            boxWidth: 0,
+                            boxHeight: 0,
+                            font: {
+                                weight: 'bold',
+                                size: 20 
+                            }
+                        }
+                    }
+                },
+               scales: {
+                   y: {
+                       beginAtZero: true,
+                       max: 100
+                   }
+               }
+           }
+       });
+
+       // Humidity Chart
+       const humidChartCtx = document.getElementById('humidChart').getContext('2d');
+       const humidChart = new Chart(humidChartCtx, {
+           type: 'line',
+           data: {
+               labels: [],
+               datasets: [
+                   {
+                       label: 'Humidity',
+                       data: [],
+                       borderColor: 'blue',
+                       tension: 0.3,
+                       fill: false
+                   }
+               ]
+           },
+           options: {
+               responsive: true,
+               animation:false,
+               plugins: {
+                    legend: {
+                        labels: {
+                            usePointStyle: true, 
+                            color: 'blue',
+                            pointStyle: 'none',
+                            boxWidth: 0,
+                            boxHeight: 0,
+                            font: {
+                                weight: 'bold',
+                                size: 20 
+                            }
+                        }
+                    }
+                },
+               scales: {
+                   y: {
+                       beginAtZero: true,
+                       max: 100
+                   }
+               }
+           }
+       });
+
+       // Gauge Chart Configurations
+       function createGauge(ctx, value, max, color) {
+           return new Chart(ctx, {
+               type: 'doughnut',
+               data: {
+                   datasets: [
+                       {
+                           data: [value, max - value],
+                           backgroundColor: [color, '#eaeaea'],
+                           borderWidth: 0
+                       }
+                   ]
+               },
+               options: {
+                   rotation: -90,
+                   circumference: 180,
+                   cutout: '80%',
+                   plugins: {
+                       tooltip: { enabled: false },
+                       legend: { display: false }
+                   }
+               }
+           });
+       }
+
+       // Gauges
+       const tempGauge = createGauge(
+           document.getElementById('gaugeTemp').getContext('2d'),
+           0, 100, 'red'
+       );
+
+       const humidityGauge = createGauge(
+           document.getElementById('gaugeHumidity').getContext('2d'),
+           0, 100, 'blue'
+       );
+       const chartCycleGauge = createGauge(
+           document.getElementById('gaugeChartCycle').getContext('2d'),
+           0, 20, 'green'
+       );
+
+       const gaugeCycleGauge = createGauge(
+           document.getElementById('gaugeGaugeCycle').getContext('2d'),
+           0, 20, 'yellow'
+       );
+       const frequencyOptions = [1000, 2000, 5000, 10000, 20000];
+        let chartFrequencyIndex = 2;
+        let gaugeFrequencyIndex = 0; 
+        let chartInterval = null;
+        let gaugeInterval = null;
+
+        function toggleChartFrequency() {
+            chartFrequencyIndex = (chartFrequencyIndex + 1) % frequencyOptions.length;
+            const newFrequency = frequencyOptions[chartFrequencyIndex];
+
+            document.getElementById('chartCycle').innerText = `${newFrequency / 1000}s`;
+            chartCycleGauge.data.datasets[0].data[0] = newFrequency / 1000;
+            chartCycleGauge.data.datasets[0].data[1] = 20 - (newFrequency / 1000);
+            chartCycleGauge.update();
+            if (chartInterval) clearInterval(chartInterval);
+            chartInterval = setInterval(updateChartData, newFrequency);
+        }
+
+        function toggleGaugeFrequency() {
+            gaugeFrequencyIndex = (gaugeFrequencyIndex + 1) % frequencyOptions.length;
+            const newFrequency = frequencyOptions[gaugeFrequencyIndex];
+
+            document.getElementById('gaugeCycle').innerText = `${newFrequency / 1000}s`;
+            gaugeCycleGauge.data.datasets[0].data[0] = newFrequency/ 1000;
+            gaugeCycleGauge.data.datasets[0].data[1] = 20 - (newFrequency/1000);
+            gaugeCycleGauge.update();
+            if (gaugeInterval) clearInterval(gaugeInterval);
+            gaugeInterval = setInterval(updateGauge, newFrequency);
+        }
+
+        async function updateChartData(chart) {
+            try {
+                const response = await fetch('/data');
+                const data = await response.json();
+
+                const currentTime = new Intl.DateTimeFormat('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hourCycle: 'h23' // Định dạng 24 giờ
+                }).format(new Date());
+
+                tempChart.data.datasets[0].data.push(data.t);
+                tempChart.data.labels.push(currentTime);
+                if (tempChart.data.datasets[0].data.length > 60) {
+                    tempChart.data.datasets[0].data.shift();
+                    tempChart.data.labels.shift();
+                }
+                tempChart.update();
+
+                humidChart.data.datasets[0].data.push(data.h);
+                humidChart.data.labels.push(currentTime);
+                if (humidChart.data.datasets[0].data.length > 60) {
+                    humidChart.data.datasets[0].data.shift();
+                    humidChart.data.labels.shift();
+                }
+                humidChart.update();
+                
+            } catch (error) {
+                console.error('Error updating chart data:', error);
+            }
+        }
+        async function updateGauge() {
+            try {
+                const response = await fetch('/data');
+                const data = await response.json();
+
+                document.getElementById('tempValue').innerText = `${data.t}°C`;
+                document.getElementById('humidityValue').innerText = `${data.h}%`;
+
+                tempColor = setTemperatureColor(data.t);
+                tempGauge.data.datasets[0].data[0] = data.t;
+                tempGauge.data.datasets[0].data[1] = 40 - data.t;
+                tempGauge.data.datasets[0].backgroundColor[0] = `rgb(${tempColor.red}, ${tempColor.green}, ${tempColor.blue})`;
+                tempGauge.update();
+
+                humiColor = setTemperatureColor(data.h);
+                humidityGauge.data.datasets[0].data[0] = data.h;
+                humidityGauge.data.datasets[0].data[1] = 100 - data.h;
+                humidityGauge.data.datasets[0].backgroundColor[0] = `rgb(${humiColor.red}, ${humiColor.green}, ${humiColor.blue})`;
+                humidityGauge.update();
+
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        window.onload = function () {
+            chartInterval= setInterval(updateChartData, frequencyOptions[chartFrequencyIndex]);
+            gaugeInterval= setInterval(updateGauge, frequencyOptions[gaugeFrequencyIndex]);
+            updateChartData();
+            updateGauge();
+            toggleChartFrequency();
+            toggleGaugeFrequency();
+        };
+        function interpolateColor(startValue, endValue, currentValue, startRed, startGreen, startBlue, endRed, endGreen, endBlue) {
+            const factor = (currentValue - startValue) / (endValue - startValue);
+            const red = Math.round(startRed + factor * (endRed - startRed));
+            const green = Math.round(startGreen + factor * (endGreen - startGreen));
+            const blue = Math.round(startBlue + factor * (endBlue - startBlue));
+            return { red, green, blue };
+        }
+
+        function setTemperatureColor(temperature) {
+            if (temperature < 30 && temperature > 20) {
+                // Xanh dương nhạt chuyển sang xanh dương đậm
+                return interpolateColor(20, 30, temperature, 0, 0, 255, 0, 0, 128);
+            } else if (temperature >= 30 && temperature < 35) {
+                // Vàng sang cam
+                return interpolateColor(30, 35, temperature, 255, 255, 0, 255, 128, 0);
+            } else if (temperature >= 35 && temperature <= 40) {
+                // Cam sang đỏ
+                return interpolateColor(35, 40, temperature, 255, 128, 0, 255, 0, 0);
+            } else if (temperature > 40) {
+                // Đỏ
+                return { red: 255, green: 0, blue: 0 };
+            } else {
+                // Đen (không hợp lệ)
+                return { red: 0, green: 0, blue: 0 };
+            }
+        }
+        function setHumidityColor(humidity) {
+            if (humidity < 50) {
+                // Vàng sang cam sang đỏ
+                return interpolateColor(0, 50, humidity, 255, 0, 0, 255, 255, 0);
+            } else if (humidity >= 50 && humidity < 70) {
+                // Xanh lá sang xanh dương
+                return interpolateColor(50, 70, humidity, 0, 255, 0, 0, 0, 255);
+            } else if (humidity >= 70 && humidity < 80) {
+                // Vàng sang cam
+                return interpolateColor(70, 80, humidity, 255, 255, 0, 255, 128, 0);
+            } else if (humidity >= 80 && humidity < 90) {
+                // Cam sang đỏ
+                return interpolateColor(80, 90, humidity, 255, 128, 0, 255, 0, 0);
+            } else if (humidity >= 90 && humidity <= 100) {
+                // Đỏ
+                return { red: 255, green: 0, blue: 0 };
+            } else {
+                // Đen (không hợp lệ)
+                return { red: 0, green: 0, blue: 0 };
+            }
+        }
+
+
+
+
+   </script>
+</body>
+
+</html>
+
