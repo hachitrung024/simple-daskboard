@@ -1,0 +1,126 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #c5e7e9;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+header {
+    width: 100%;
+    background: #4b99f3;
+    color: white;
+    padding: 10px 0;
+    text-align: center;
+}
+
+.dashboard {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 95%;
+    max-width: 1200px;
+    margin: 20px 0;
+    gap: 20px;
+}
+
+.charts {
+    flex: 1 1 calc(50% - 20px);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 300px;
+}
+
+.chart-container {
+     background: lightcyan;
+     border-radius: 20px;
+     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+     padding: 20px;
+     text-align: center;
+     height: 250px;  
+     display: flex;
+     flex-direction: column;
+     justify-content:center;
+     align-items: stretch;
+ }
+ .chart-header {
+     flex: 0 0 auto;
+     text-align: center;
+     background-color: inherit;
+     font-size: 2vw;
+     font-weight: bold;
+ }
+ .chart-container h1 {
+     margin-bottom: 1px;
+     color: white;
+ }
+ .button-container {
+     display: flex;
+     border: 10px #000000;
+     gap: 30px; /* Khoảng cách giữa các nút */
+     padding: 20px;
+     justify-content: center;
+ }
+
+ .control-button {
+     width: auto;
+     height: auto;
+     font-size: 30px;
+     background-color: #007bff;
+     color: white;
+     border-radius: 7px;
+     cursor: pointer;
+     transition: background-color 0.3s;
+ }
+
+
+.gauges {
+    flex: 1 1 calc(50% - 20px);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 20px;
+    min-width: 300px;
+}
+
+.gauge-container {
+    text-align: center;
+    background: lightcyan;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    height: 250px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    display: flex;
+     align-items: center;
+     margin: 0;
+}
+.gauge-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-top: 10px;
+}
+.gauge-value.clickable {
+     cursor: pointer;
+     transition: all 0.3s ease;
+ }
+
+ .gauge-value.clickable:hover {
+     color: rgb(209, 26, 26);
+ }
+
+ .gauge-value.clickable:active {
+     transform: scale(0.75);
+ }
+ .color-display {
+     width: 100px;
+     height: 100px;
+     margin: 20px auto;
+     border: 1px solid #ddd;
+     border-radius: 10px;
+     background-color: #000;
+ }
